@@ -19,9 +19,17 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module codigo_teclas(
+	input clk, rst,
+	input stop,
     input wire [7:0] key_code,
-    output reg [7:0] ascii_code
+    output [7:0] key_out,
+	output reg [7:0] ascii_code,
+	output reg interrupt
+	
    );
+   
+   reg [7:0] key_reg;
+   reg [7:0] key_next;
 
 always @*
    case(key_code)
@@ -34,6 +42,12 @@ always @*
 		 8'h0b: ascii_code = 8'h26; //F6
 		 8'h83: ascii_code = 8'h27; //F7
 		 8'h0a: ascii_code = 8'h28; //F8
+		 
+		 8'h75: ascii_code = 8'h10; //flecha arriba
+ 		 8'h74: ascii_code = 8'h11; //flecha derecha
+		 8'h6b: ascii_code = 8'h12; //flecha izquierda 
+		 8'h72: ascii_code = 8'h13; //flecha abajo
+		 
 	
        8'h45: ascii_code = 8'h30;   // 0
        8'h16: ascii_code = 8'h31;   // 1
@@ -85,9 +99,32 @@ always @*
        8'h49: ascii_code = 8'h2e;   // .
        8'h4a: ascii_code = 8'h2f;   // /
 
-       8'h29: ascii_code = 8'h20;   // (space)
+       //8'h29: ascii_code = 8'h20;   // (space)
        8'h5a: ascii_code = 8'h0d;   // (enter, cr)
        8'h66: ascii_code = 8'h08;   // (backspace)
        default: ascii_code = 8'h2a; // *
     endcase
+	
+	always @(posedge clk)
+	begin 
+		if (rst)
+			key_reg<=8'h00;
+		else 
+			key_reg<= key_code;
+	end
+	always @(posedge clk)
+	begin
+		if (rst)
+			key_next<=8'h00;
+		else key_next<= key_reg;
+	end
+	always @(posedge clk)
+	begin
+		if (stop)
+			interrupt<=1'b0;
+		else if ((key_reg != key_next) && ascii_code) 
+			interrupt<=1'b1;
+	end
+	
+	assign key_out = key_reg;
 endmodule
