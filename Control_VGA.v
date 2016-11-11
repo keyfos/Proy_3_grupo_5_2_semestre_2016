@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date:    11:24:05 10/24/2016 
+// Create Date:    00:48:22 11/08/2016 
 // Design Name: 
 // Module Name:    Control_VGA 
 // Project Name: 
@@ -19,84 +19,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module Control_VGA(
-	input wire clk_nexys, reset,
-	input [2:0] direc_cursor,
-	input [7:0] direc_progra,
-	input crono_final, tiempo, formato, 
-	input wire [7:0] hora_x, min_x, seg_x, dia_x, mes_x, year_x, hora_crono, min_crono, seg_crono, HCRONO_FIN, MCRONO_FIN, SCRONO_FIN,
-	output wire [11:0] color_salida,
-	output wire hsync, vsync
+	input CLK, rst,
+	output hsync, vsync,
+	output [11:0] COLOUR_OUT
     );
 
-	 wire ON_VID; 
-	 wire [9:0] x_p, y_p;
-	 wire PT;
-	 wire [11:0] rgb_next;
-	 reg [11:0] rgb_reg;
-	 wire [11:0] colors;
-	 wire medio_seg;
-	 
-	 contador_clk inst_contador_clk(
-		.CLK_NX(clk_nexys),
-		.reset(reset),
-		.pixel_rate(PT),
-	 	.clk_RING(medio_seg)
-	 );
+	wire [7:0] HORA, MIN, SEG, DIA, MES, YEAR, HCRONO, MCRONO, SCRONO, HCRON_FIN, MCRONO_FIN, SCRONO_FIN;
+	wire fin_crono, clk_alarm;
+	wire am_pm, hformato;
+	wire [2:0] dir_cursor;
+	wire [7:0] progra_dir;
 	
-	sincronizacion inst_sincronizacion(
-		 .reset(reset),
-		 .CLK_pix_rate(PT),
-		 .h_sync(hsync),
-		 .v_sync(vsync),
-		 .video_on(ON_VID),
-		 .pixel_x(x_p),
-		 .pixel_y(y_p)
-	 );
-	 
-	 mux_colores inst_mux_colores(
-		.video_on(ON_VID),
-		.color(colors),
-		.RGB(rgb_next)
-	);
-	 
-	 PantallaVGA inst_PantallaVGA (
-			.clk(clk_nexys), 
-			.rst(reset), 
-			.clk_alarm(medio_seg), 
-			.clk_pantalla(PT),
-			.pixel_x(x_p), 
-			.pixel_y(y_p), 
-			.Hora(hora_x),
-			.min(min_x),
-			.seg(seg_x),
-			.dia(dia_x),
-			.mes(mes_x),
-			.year(year_x),
-			.hcrono(hora_crono),
-			.mcrono(min_crono),
-			.scrono(seg_crono),
-			.hcrono_fin(HCRONO_FIN),
-			.mcrono_fin(MCRONO_FIN),
-			.scrono_fin(SCRONO_FIN),
-			.fin_crono(crono_final),
-			.am_pm(tiempo),
-			.hformato(formato),
-			.dir_cursor(direc_cursor),
-			.progra_dir(direc_progra),
-			.color_out(colors));
-					
+	MainActivity inst_Pantalla(
+		.CLK(CLK),
+		.rst(rst), 
+		.Hora(HORA),
+		.min(MIN),
+		.seg(SEG),
+		.dia(DIA),
+		.mes(MES),
+		.year(YEAR),
+		.hcrono(HCRONO),
+		.mcrono(MCRONO),
+		.scrono(SCRONO),
+		.hcrono_fin(HCRONO_FIN),
+		.mcrono_fin(MCRONO_FIN),
+		.scrono_fin(SCRONO_FIN),
+		.fin_crono(fin_crono),
+		.clk_alarm(clk_alarm),
+		.am_pm(am_pm),
+		.hformato(hformato),
+		.dir_cursor(dir_cursor),
+		.progra_dir(progra_dir),
+		.COLOUR_OUT(COLOUR_OUT),
+		.HS(hsync),
+		.VS(vsync)	
+	   );
 	
 	
-	 
-	  always @(posedge clk_nexys, posedge reset)
-		 begin
-			 if(reset)
-				rgb_reg<=12'hfff;
-			 else
-			 begin
-				if (PT)
-					rgb_reg<=rgb_next;
-			 end
-		 end
-		 assign color_salida=rgb_reg;
 endmodule
